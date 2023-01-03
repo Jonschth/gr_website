@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Golden Redfish in Icelandic waters: a statistical approach</title>
+<title>golden_redfish_article</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -107,22 +107,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Golden Redfish in Icelandic waters: a statistical approach</h1>
-</div>
 
-
-
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-</header>
 
 <section id="golden-redfish-in-icelandic-waters-a-statistical-approach" class="level1">
 <h1>Golden redfish in Icelandic waters: a statistical approach</h1>
@@ -679,13 +664,13 @@ Python 3.11 programming language
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>(X, y) <span class="op">=</span> get_new_data(fractile, show_heatmaps<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-10-output-1.png" width="640" height="490"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-10-output-2.png" width="648" height="502"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-2.png" class="img-fluid"></p>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-10-output-3.png" width="640" height="516"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-3.png" class="img-fluid"></p>
 </div>
 </div>
 <p>Above there are three heatmaps. in the first heat map we show the relative weight of individuals of certain length over the years. We compared the mean weight for individuals of lengths from 30-50cm for the years in this decade to the mean of the average weights of the whole population sample. Interestingly they differ significantly at the α=.01 level.</p>
@@ -697,7 +682,7 @@ Python 3.11 programming language
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb, interval_int, fractile, <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-11-output-1.png" width="638" height="464"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 <p>The optimal solutions (the solutions that best balance the mean bsolute error (“mae”) and the explainability (<span class="math inline">\(r^2\)</span>) ) is that there are currently 385, 395 or 412 m individuals in the stock. At this point mae <span class="math inline">\(\approx\)</span> 52m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.55. While this is a solid estimate we are looking for a better result in terms of r2 og mae.</p>
@@ -729,10 +714,11 @@ Python 3.11 programming language
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb,</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                  interval_int,</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                  fractile,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                  y_offset)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                  y_offset)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-13-output-1.png" width="634" height="472"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 <p>Given the rapid decline in stocks in the past few years we were keen to test if the estimates of stock sizes in the past decade may have been excessive. By introducing slack variables for the years 2015 - 2019 and fixing the test on the same period as well as fixing the result of the last 3years we got a much better result. In this case the current stock size was estimated at 378 m individuals. At this point mae <span class="math inline">\(\approx\)</span> 47m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.8.</p>
@@ -772,10 +758,10 @@ Python 3.11 programming language
 No data for colormapping provided via 'c'. Parameters 'vmin', 'vmax' will be ignored</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-15-output-2.png" width="715" height="579"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-15-output-2.png" class="img-fluid"></p>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-15-output-3.png" width="912" height="537"></p>
+<p><img src="golden_redfish_article_files/figure-html/cell-15-output-3.png" class="img-fluid"></p>
 </div>
 </div>
 <p>We performed two types of shap analysis an dthey are shown on the figures above (summary plot and waterfall plot)</p>
@@ -789,13 +775,13 @@ No data for colormapping provided via 'c'. Parameters 'vmin', 'vmax' will be ign
 <p>Golden redfish lives in large schools.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="attachment:c774499a-8e3a-4116-b887-3530b8b164d7.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/553704e3-2-c774499a-8e3a-4116-b887-3530b8b164d7.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution without correcting for large catches</figcaption><p></p>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="attachment:7e193076-093c-4808-b7bc-c9bec2a5c86a.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/553704e3-1-7e193076-093c-4808-b7bc-c9bec2a5c86a.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,</figcaption><p></p>
 </figure>
 </div>
