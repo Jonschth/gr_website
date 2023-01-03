@@ -116,7 +116,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1>Software and data</h1>
 <section id="packages-imported" class="level2">
 <h2 class="anchored" data-anchor-id="packages-imported">Packages imported</h2>
-<p>This Jupyter notebook contains the python code for the Golden redfish model that Maris Optimum has developed.</p>
+<p>This file contains the python code and description of the Golden redfish statistical model that Maris Optimum has developed.</p>
 Sources:
 <ol>
 <li>
@@ -133,7 +133,8 @@ Python 3.11 programming language
 </li>
 </ol>
 <p>The main packages used are: <a href="https://xgboost.readthedocs.io/en/stable/index.html">the xgboost regressor</a>, <a href="https://scikit-learn.org/stable/user_guide.html">the scikit-learn suite</a>, <a href="https://shap.readthedocs.io/en/latest/index.html">the shap suite</a>.</p>
-<div class="cell">
+<p>We start by describing the data gathering and the functions of the model.</p>
+<div class="cell" data-execution_count="1">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""Optimal regression found to estimate catch sizes."""</span></span>
@@ -167,12 +168,15 @@ Python 3.11 programming language
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>red_length_weights.set_index(<span class="st">'ar'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="data-fetched-and-heat-maps-generated" class="level3">
-<h3 class="anchored" data-anchor-id="data-fetched-and-heat-maps-generated">Data fetched and heat maps generated</h3>
-<div class="cell">
+</section>
+<section id="data-fetched-and-adjusted" class="level2">
+<h2 class="anchored" data-anchor-id="data-fetched-and-adjusted">Data Fetched and adjusted</h2>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<div class="cell" data-execution_count="2">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_new_data(fractile):</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_new_data(fractile, show_heatmaps):</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Fetch all data for the regression.</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -213,7 +217,7 @@ Python 3.11 programming language
 <span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    X_cal_df.columns <span class="op">=</span> <span class="dv">1000</span> <span class="op">+</span> X_cal_df.columns</span>
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    X_cal_df.columns <span class="op">=</span> X_cal_df.columns.astype(<span class="bu">int</span>).astype(<span class="bu">str</span>)</span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    catch_df <span class="op">=</span> catch_converter(X_cal_df, catch_df)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    catch_df <span class="op">=</span> catch_converter(X_cal_df, catch_df, show_heatmaps)</span>
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    catch_df.year <span class="op">=</span> catch_df.year.astype(<span class="bu">int</span>)</span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    catch_df.set_index(catch_df.year, inplace<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
@@ -255,8 +259,9 @@ Python 3.11 programming language
 <span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    XX_df <span class="op">=</span> XX_df.join(s)</span>
 <span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>    XX_df <span class="op">=</span> XX_df.fillna(<span class="dv">0</span>)</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    heat_maps(XX_df,YY)</span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (XX_df, YY)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> show_heatmaps:</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        heat_maps(XX_df,YY)</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (XX_df, YY)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -264,10 +269,10 @@ Python 3.11 programming language
 <h3 class="anchored" data-anchor-id="conversion-of-kg-catch-to-units-of-individuals-in-length-groups">Conversion of kg catch to units of individuals in length groups</h3>
 <p>The annual catch of the fleet is reported by weight. The statistical model is based on number of individuals at each length cm. Measurement data from IMFI surveys was employed to estmate the catch into lengths and number of individuals.</p>
 <p>Where data did not exist polynomial regression of the second order was employed to estmiate lengths and weights.</p>
-<div class="cell">
+<div class="cell" data-execution_count="3">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> catch_converter(X_catch_per_df, catch_df):</span>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> catch_converter(X_catch_per_df, catch_df, show_heatmaps):</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Catch information used to formulate and calculate units from kg.</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -316,17 +321,18 @@ Python 3.11 programming language
 <span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>            year <span class="op">-</span> <span class="dv">1985</span>, <span class="st">'number'</span>] <span class="op">=</span> catch_df.loc[</span>
 <span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>                year <span class="op">-</span> <span class="dv">1985</span>, <span class="st">'catch'</span>]<span class="op">/</span>average_weight</span>
 <span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> red_length_weights</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>    scaled_df <span class="op">=</span> (df <span class="op">-</span> df.<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">0</span>))<span class="op">/</span>(df.<span class="bu">max</span>(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> df.<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">0</span>))</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">6</span>))</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> sns.heatmap(scaled_df, linewidths<span class="op">=</span><span class="fl">.5</span>, cmap<span class="op">=</span><span class="st">'RdYlGn'</span>)</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(ylabel<span class="op">=</span><span class="st">'year'</span>)</span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> catch_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> show_heatmaps:</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> red_length_weights</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>        scaled_df <span class="op">=</span> (df <span class="op">-</span> df.<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">0</span>))<span class="op">/</span>(df.<span class="bu">max</span>(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> df.<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">6</span>))</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>        ax <span class="op">=</span> sns.heatmap(scaled_df, linewidths<span class="op">=</span><span class="fl">.5</span>, cmap<span class="op">=</span><span class="st">'RdYlGn'</span>)</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>        ax.<span class="bu">set</span>(ylabel<span class="op">=</span><span class="st">'year'</span>)</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>        plt.show()</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> catch_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>The data used was received from the Icelandic Marine and Freshwater Institute spring surveys and catch reports by the Directorate of Fisheries (DF). We have modified the survey data as large individual hauls may have undue influence on the overall samples and give a biased view of the size distribution in the survey. The relatitve importance of the largest catches has been scaled down to the size of the catch sizes at the 96th fractile to reduce this bias. See appendix 1 for more detail.</p>
-<p>The regression is set up in the normal fashion: y = f(X), where y, the independant variable is the stock index and X, the dependent variable is the set of observation and f is a function derived from the regression.</p>
+<p>The regression is set up in the normal fashion: y = f(X), where y, the independant variable is the stock index and X, the dependent variable (“features”) is the set of observation and f is a function derived from the regression.</p>
 <p>X contains 108 variables. The first 51 are taken directly from every spring survey from 1985 and are the calculated percentage of individuals that appear in each length group. The following variable is, max(cum), is the number of individials observed in the survey.</p>
 <p>The next five variables are slack variables for years 2015 - 2019.</p>
 <p>The final 51 variables contain the number of individuals observed in each length group by the fishing fleet as collected by the DF.</p>
@@ -337,7 +343,7 @@ Python 3.11 programming language
 <h1>Plots and Figures</h1>
 <section id="heat-maps" class="level3">
 <h3 class="anchored" data-anchor-id="heat-maps">Heat maps</h3>
-<div class="cell">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> heat_maps(X, y):</span>
@@ -372,7 +378,7 @@ Python 3.11 programming language
 <section id="plot-over-possible-stock-range" class="level3">
 <h3 class="anchored" data-anchor-id="plot-over-possible-stock-range">Plot over possible stock range</h3>
 <p>The algorithm iterates over the range 343 to 453 million individuals in steps of one million individuals at a time. It finds the lowest mean absolute error at each step. The plot shows the mean absolute error and <span class="math inline">\(r^2\)</span>.</p>
-<div class="cell">
+<div class="cell" data-execution_count="5">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_result_range(result_dict, interval_int, fractile, y_offset):</span>
@@ -392,9 +398,9 @@ Python 3.11 programming language
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">    None.</span></span>
 <span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    result_dict[<span class="st">'x'</span>] <span class="op">=</span> <span class="bu">range</span>(<span class="dv">343</span><span class="op">+</span>y_offset,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    result_dict[<span class="st">'x'</span>] <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">343</span><span class="op">+</span>y_offset,</span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>                             <span class="dv">453</span><span class="op">+</span>y_offset,</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>                             <span class="bu">int</span>(interval_int<span class="op">/</span><span class="fl">1e6</span>))</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>                             <span class="bu">int</span>(interval_int<span class="op">/</span><span class="fl">1e6</span>)))</span>
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots()</span>
 <span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    sns.<span class="bu">set</span>(style<span class="op">=</span><span class="st">'whitegrid'</span>,</span>
 <span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>            palette<span class="op">=</span><span class="st">'pastel'</span>, )</span>
@@ -422,8 +428,8 @@ Python 3.11 programming language
 </section>
 <section id="shap-calculations-and-plots" class="level3">
 <h3 class="anchored" data-anchor-id="shap-calculations-and-plots">Shap calculations and plots</h3>
-<p>Shap <a href="https://github.com/slundberg/shap">values</a> are calculated for the values with the lowest mean absolute error. The twenty most influential dependent variables are displayed. As there is a strong degree of dependency between the dependant variables (see Principal Component Analysis below) the results are more illustrative than definite (see for this <a href="https://towardsdatascience.com/the-limitations-of-shap-703f34061d86#:~:text=But%20don't%20let%20the%20popularity%20persuade%20you.&amp;text=We%20will%20discuss%203%20significant,them%20%E2%80%94%20we%20make%20up%20stories">article</a> for example).</p>
-<div class="cell">
+<p>Shap <a href="https://github.com/slundberg/shap">values</a> are calculated for the values with the lowest mean absolute error. The twenty most influential feaures are displayed. As there is a strong degree of dependency between the features (see Appendix 2 below) care must be applied to the analysis (see for example this article: <a href="https://towardsdatascience.com/the-limitations-of-shap-703f34061d86#:~:text=But%20don't%20let%20the%20popularity%20persuade%20you.&amp;text=We%20will%20discuss%203%20significant,them%20%E2%80%94%20we%20make%20up%20stories">The limitations of shap</a>).</p>
+<div class="cell" data-execution_count="6">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> shap_calculations_xgb(regressor, XX_df):</span>
@@ -465,14 +471,14 @@ Python 3.11 programming language
 <span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>                         show<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    plt.gcf().set_size_inches(<span class="dv">8</span>,<span class="dv">6</span>)</span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    plt.show</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
 <section id="regression-over-possible-ending-values-of-stock" class="level3">
 <h3 class="anchored" data-anchor-id="regression-over-possible-ending-values-of-stock">Regression over possible ending values of stock</h3>
 <p>The algorithm itearates over the range 343 to 453 million individuls in steps of one 1 million at a time. It finds parameters for the gradient boosting algorithm by using grid search where the root mean square error is as low as possible at each step. It choses the number of individuals based on the lowest mean absolute error value.</p>
-<div class="cell">
+<div class="cell" data-execution_count="7">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regression_over_possible_values_XGB(X, y, interval_int):</span>
@@ -570,15 +576,15 @@ Python 3.11 programming language
 <span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> regressor.best_params_</span>
 <span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>    regressor <span class="op">=</span> xgb.XGBRegressor(<span class="op">**</span>params)</span>
 <span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>    regressor.fit(X, y)</span>
-<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>    shap_calculations_xgb(regressor, X)</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result_dict</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result_dict, regressor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
-<section id="free-regression-with-slack-variables-for-the-period-2014-to-2019" class="level3">
-<h3 class="anchored" data-anchor-id="free-regression-with-slack-variables-for-the-period-2014-to-2019">Free regression (with slack variables for the period 2014 to 2019)</h3>
-<div class="cell">
+<section id="free-regression-with-slack-variables-for-the-period-2015-to-2019" class="level3">
+<h3 class="anchored" data-anchor-id="free-regression-with-slack-variables-for-the-period-2015-to-2019">Free regression (with slack variables for the period 2015 to 2019)</h3>
+<div class="cell" data-execution_count="8">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> free_regression_XGB(X, y):</span>
@@ -632,7 +638,7 @@ Python 3.11 programming language
 <span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    regressor.fit(X_train,</span>
 <span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>                  y_train,</span>
 <span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>                  eval_set<span class="op">=</span>eval_set,</span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>                  verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>                  verbose<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># params = regressor.best_params_</span></span>
 <span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>    <span class="co"># regressor = xgb.XGBRegressor(**params)</span></span>
@@ -642,72 +648,116 @@ Python 3.11 programming language
 </details>
 </div>
 </section>
-<section id="running-code-and-results-using-random-training-and-testing-data---instance-1." class="level3">
-<h3 class="anchored" data-anchor-id="running-code-and-results-using-random-training-and-testing-data---instance-1.">Running code and results, using random training and testing data - instance 1.</h3>
+<section id="model-run-1" class="level2">
+<h2 class="anchored" data-anchor-id="model-run-1">Model run (#1)</h2>
 <ol type="1">
-<li>Heatmap showing the relationship between length and weight through the years</li>
-<li>Adjust data (cf.&nbsp;appendix 1)</li>
-<li>Fetch adjusted data</li>
-<li>Show heat maps</li>
-<li>Regress in a loop over possible values</li>
-<li>Shap analysis</li>
+<li>Adjusted data fetched</li>
+<li>Heat maps generated</li>
+<li>Regression in a loop over possible values</li>
 </ol>
-<p>The optimal solutions (the solutions that best balances the mean average error (“mae”) and explainability (<span class="math inline">\(r^2\)</span>) ) is that there are currently 385, 395 or 412 m individuals. At this point mae $ $ 52m individuals and <span class="math inline">\(r^2\)</span> $ $ 0.55. This is a good estimation although we would have hoped for a lower mae.</p>
-<p>We do two kind of shap analysis. The first figures shows the</p>
-<p>that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The number of individuals that have been caught by the fleet (the code starting with “10”) is also very important.</p>
-<p>The Max(cum) variable is of major importance as it contains the CPU of the respective survey (i.e.&nbsp;number of individuals caught).</p>
-<div class="cell" data-hide_input="true">
+<div class="cell" data-hide_input="true" data-execution_count="9">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fractile <span class="op">=</span> <span class="st">'096'</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>interval_int <span class="op">=</span> <span class="dv">1000000</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>(X, y) <span class="op">=</span> get_new_data(fractile)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>result_dict_gb <span class="op">=</span> regression_over_possible_values_XGB(X, y, interval_int)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb, interval_int, fractile, <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>(X, y) <span class="op">=</span> get_new_data(fractile, show_heatmaps<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-display">
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
 </div>
+<div class="cell-output cell-output-display">
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-2.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="golden_redfish_article_files/figure-html/cell-10-output-3.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Above there are three heatmaps. in the first heat map we show the relative weight of individuals of certain length over the years. We compared the mean weight for individuals of lengths from 30-50cm for the years in this decade to the mean of the average weights of the whole population sample. Interestingly they differ significantly at the α=.01 level.</p>
+<p>The other two heat maps show the distribution of the length classes in percentages and millions. They show really well the precarious position of the golden redfish stock.</p>
+<div class="cell" data-execution_count="10">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>result_dict_gb, regressor <span class="op">=</span> regression_over_possible_values_XGB(X, y, interval_int)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb, interval_int, fractile, <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="golden_redfish_article_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>The optimal solutions (the solutions that best balance the mean bsolute error (“mae”) and the explainability (<span class="math inline">\(r^2\)</span>) ) is that there are currently 385, 395 or 412 m individuals in the stock. At this point mae <span class="math inline">\(\approx\)</span> 52m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.55. While this is a solid estimate we are looking for a better result in terms of r2 og mae.</p>
 </section>
-<section id="running-code-and-results-using-fixed-testing-data-and-slack-variables---instance-2." class="level3">
-<h3 class="anchored" data-anchor-id="running-code-and-results-using-fixed-testing-data-and-slack-variables---instance-2.">Running code and results, using fixed testing data and slack variables - instance 2.</h3>
+<section id="model-run-2" class="level2">
+<h2 class="anchored" data-anchor-id="model-run-2">Model run (#2)</h2>
 <ol type="1">
-<li>Adjust and fetch data(cf appendix 1)</li>
-<li>Show the heat maps</li>
-<li>Run “free” gradient boosting</li>
-<li>Regress in a loop over possible values</li>
+<li>Adjusted data fetched</li>
+<li>“Free” gradient boosting used to estimate actual stock sizes for 2015-2019</li>
+<li>Regression in a loop over possible values</li>
 <li>Shap analysis</li>
 </ol>
-<p>As we were dissatisfied with the high mean average error in our initial approach we wanted conducted more analysis. Given the rapid decline in stocks in the past few years we were keen to test if the estimates of the past 10 years may have been excessive. By introducing slack variables for the years 2012 - 2019 and fixing the test on the same period as well as fixing the result of the current 2 years we got a much better result. In this case the current stock size was estimated at 380 m individuals. At this point mae $ $ 40m individuals and <span class="math inline">\(r^2\)</span> $ $ 0.8.</p>
-<p>This result is much better than the previous instance. The result of Imfi of 343 m individuals falls within the confidence interval so the results are essentially the same.</p>
-<p>The shap analysis shows that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The amount caught by the fleet in the same length groups is also very important in this running instance.</p>
-<p>The Max(cum) variable is even more important in this instance. This is to be expected as this run is more precise and therefore more sensitive than the previous instance.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(X, y) <span class="op">=</span> get_new_data(fractile)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>y_2022 <span class="op">=</span> y.iloc[<span class="dv">37</span>]</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> pd.Series(free_regression_XGB(X, y))</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>y_offset <span class="op">=</span> <span class="bu">int</span>((y.iloc[<span class="dv">37</span>]<span class="op">-</span>y_2022)<span class="op">/</span><span class="fl">1e6</span>)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>result_dict_gb <span class="op">=</span> regression_over_possible_values_XGB(X,</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                                                     y,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                                                     interval_int)</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb, interval_int, fractile, y_offset)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(X_observed, y_observed) <span class="op">=</span> get_new_data(fractile, <span class="va">False</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>y_2022 <span class="op">=</span> y_observed.iloc[<span class="dv">37</span>]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>y_calculated <span class="op">=</span> pd.Series(free_regression_XGB(X_observed, y_observed))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>y_offset <span class="op">=</span> <span class="bu">int</span>((y_calculated.iloc[<span class="dv">37</span>]<span class="op">-</span>y_2022)<span class="op">/</span><span class="fl">1e6</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>result_dict_gb, regressor <span class="op">=</span> regression_over_possible_values_XGB(X_observed,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                                                     y_calculated,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                                                     interval_int)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-</section>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                  interval_int,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                  fractile,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                  y_offset)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Given the rapid decline in stocks in the past few years we were keen to test if the estimates of stock sizes in the past decade may have been excessive. By introducing slack variables for the years 2015 - 2019 and fixing the test on the same period as well as fixing the result of the last 3years we got a much better result. In this case the current stock size was estimated at 378 m individuals. At this point mae <span class="math inline">\(\approx\)</span> 47m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.8.</p>
+<p>This result is much better than the previous instance. The result of IMFI of 343 m individuals falls within the confidence interval so the results are essentially the same.</p>
+<p>In the table below we show the difference between the observed stock size and the size as calculated by the model:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>y_observed.index<span class="op">=</span><span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">38</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>y_df <span class="op">=</span> pd.concat([y_observed, y_calculated], axis<span class="op">=</span><span class="dv">1</span>, join<span class="op">=</span><span class="st">'inner'</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>y_df.columns <span class="op">=</span> [<span class="st">'observed'</span>, <span class="st">'calculated'</span>]</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>y_df[<span class="st">'difference'</span>] <span class="op">=</span> y_df[<span class="st">'observed'</span>] <span class="op">-</span> y_df[<span class="st">'calculated'</span>]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>y_df <span class="op">=</span> y_df.rename(index <span class="op">=</span> <span class="kw">lambda</span> x: x <span class="op">+</span> <span class="dv">1985</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>pd.options.display.float_format <span class="op">=</span> <span class="st">'{:,.0f}'</span>.<span class="bu">format</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(y_df.iloc[<span class="dv">30</span>:<span class="dv">38</span>, :])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>shap_calculations_xgb(regressor, X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We performed two types of shap analysis an dthey are shown on the figures above (summary plot and waterfall plot)</p>
+<p>The result of the first is shown on the summary plot (the first figure) where the dependent variables are ranked in order of importance over the whole period (1985 - 2022). The first figure shows the impact of each feature in millions of individuals. If the red colour is on the positive x-axis it indicates that more individuals of this length mean more overall individuals and vice versa. Of note is that in feature from the survey e.g.&nbsp;56 blue is on the negative x axis and red on the positive side. Conversely most of the fleet catch features, 10XX show the opposite impact as expected.</p>
+<p>The most important feature is the 19 cm feature from the surveys. This feature has always been of key importance even when our models did not manage to explain variance (&lt;&lt;.5) and there were higher rmse and mae errors (&gt;100.000.000). Statistically it is easy to explain this: good recruitment means that there are a lot of individuals in the total stock (in addition to the 19cm variety). Of note is that is that 1019 has red on both sides of the of the x-axis which underlines the need to protect recruits. It is also negatively skewed.</p>
+<p>The third feature, max(cum), is interesting in that it shows that the number of individuals caught in a survey is a very good indicator of stock size.</p>
+<p>The rest of the important features fall into two categories: 1) Sizes 29-40 in caught the survey. 2) Sizes 35 + in caught by the fleet. The states the obvious: As stock is depleted the individuals caught in surveys and by the fleet are longer.</p>
+<p>The waterfall plot n the second figure displays how the 2022 value estimation is arrived at by the regression model. the model starts at the average number of 786 m individuals (the average of stock suveys for the years 1985 - 2022) which is shown at the bottom of the figure. It then calculates the impact of the observed number of individuals in the spring survey in 2022 as well as the estimated fleet catches. The final result, 378 m, is shown at the top of the figure and how the model got there.</p>
 <section id="appendix-1-adjusting-for-large-catches-in-surveys" class="level3">
 <h3 class="anchored" data-anchor-id="appendix-1-adjusting-for-large-catches-in-surveys">Appendix 1: Adjusting for large catches in surveys</h3>
 <p>Golden redfish lives in large schools.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="attachment:62f0ee65-fce7-4070-93b2-fd5e81750c33.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/685570a5-2-c774499a-8e3a-4116-b887-3530b8b164d7.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution without correcting for large catches</figcaption><p></p>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="attachment:05a16beb-152d-40a0-befe-a74ca37ae1d5.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/685570a5-1-7e193076-093c-4808-b7bc-c9bec2a5c86a.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,</figcaption><p></p>
 </figure>
 </div>
@@ -717,15 +767,18 @@ Python 3.11 programming language
 <div class="cell" data-hide_input="true">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>X_sca <span class="op">=</span> scaler.fit_transform(X)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">18</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>pca.fit(X_sca)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>((pca.explained_variance_ratio_))</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pca.singular_values_)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>X_sca <span class="op">=</span> scaler.fit_transform(X)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">18</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>pca.fit(X_sca)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>pd.options.display.float_format <span class="op">=</span> <span class="st">'{:,.2f}'</span>.<span class="bu">format</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>evr <span class="op">=</span> pd.DataFrame(pca.explained_variance_ratio_, columns<span class="op">=</span>[<span class="st">'variability'</span>])</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(evr.iloc[<span class="dv">0</span>:<span class="dv">5</span>, <span class="dv">0</span>:<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The above tables illustrate that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 103 it is clear that there is a high degree of dependency between the dependant variables and that the SHAP analysis should be taken with a spoon of salt :) The next steps in the development is to try and reduce the number of variables.</p>
+<p>The above tables illustrates that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 108 it is clear that there is a high degree of dependency between the dependant variables. Gradient boosting strength is that it discards features with the same information in already chosen features. The shap analysis above shows that the 10-15 most important features provide enough information for the model to function.</p>
+</section>
 </section>
 </section>
 

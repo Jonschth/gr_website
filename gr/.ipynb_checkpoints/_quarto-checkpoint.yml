@@ -1,0 +1,5 @@
+project:
+  title: "gr"
+  type: website
+  output-dir: docs
+  
