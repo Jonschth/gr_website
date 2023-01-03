@@ -1,0 +1,621 @@
+---
+jupyter: python3
+---
+
+# Golden redfish in Icelandic waters: a statistical approach
+
+---
+tile: 'Golden Redfish in Icelandic waters: a statistical approach'
+format: 
+    html:
+        code-fold: true
+jupyter: python3
+---
+
+# Software and data
+
+## Packages imported
+
+This Jupyter notebook contains the python code for the Golden redfish model that Maris Optimum has developed.
+
+Sources:
+<ol>
+    <li>Data from Icelandic Marine and Freshwater Institute (IMFI) </li>
+    <li>Data from the Directory of Fisheries (DF) obtained from IMFI</li>
+    <li>Gradient boosting regression algorithm xgboost and various packages</li>
+    <li>Python 3.11 programming language</li>
+</ol>
+    
+    
+The main packages used are:
+    [the xgboost regressor](https://xgboost.readthedocs.io/en/stable/index.html), 
+    [the scikit-learn suite ](https://scikit-learn.org/stable/user_guide.html),
+    [the shap suite](https://shap.readthedocs.io/en/latest/index.html).
+    
+    
+
+
+```{python}
+#| hide_input: false
+"""Optimal regression found to estimate catch sizes."""
+
+
+import pandas as pd
+import math
+import seaborn as sns
+from matplotlib import pyplot as plt
+# from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import explained_variance_score
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import xgboost as xgb
+from sklearn.model_selection import GridSearchCV
+import shap
+import time
+
+path_str = 'R:\\Ráðgjöf\\Maris Optimum/gr_data\\'
+# path_str = ''
+path_grs_weight =\
+    'R:/Ráðgjöf/Maris Optimum/Data_from_Hafro_20220906/ssb_weights/'
+
+red_length_weights = pd.read_csv(
+    path_grs_weight + "red_length_weights.csv")
+red_length_weights.set_index('ar', inplace=True)
+```
+
+### Data fetched and heat maps generated
+
+```{python}
+#| hide_input: false
+def get_new_data(fractile):
+    """
+    Fetch all data for the regression.
+
+    Parameters
+    ----------
+    fractile : integer.
+
+    Returns
+    -------
+    XX_df : Dataframe with data for all the dependent variables.
+    YY : Dataframe with data for the the independent variable.
+
+    """
+    X100_df = pd.read_csv(path_str + 'distribution100.csv',
+                          sep=",")
+    ysq_df = X100_df[['ar', 'max(cum)']].copy()
+    ysq_df.set_index(['ar'], inplace=True)
+    ysq_df = ysq_df[~ysq_df.index.duplicated(keep='first')]
+
+    X_df = pd.read_csv(path_str + 'distribution' + fractile + '.csv',
+                       sep=",")
+
+    catch_df = pd.read_csv(path_str + 'golden_redfish_catch.csv',
+                           sep=";")
+
+    catch_df.at[37, 'year'] = 2022.0
+    catch_df.at[37, 'catch'] = 26
+    catch_df.at[37, 'number'] = 29
+
+    X_cal_df = pd.read_csv(path_str + 'distribution_commercial.csv',
+                           sep=",")
+    X_cal_df.drop(1605, axis=0, inplace=True)
+
+    X_cal_df = X_cal_df.pivot(index='ar',
+                              columns='lengd',
+                              values='per_length')
+    X_cal_df = X_cal_df.fillna(0)
+    X_cal_df.columns = 1000 + X_cal_df.columns
+    X_cal_df.columns = X_cal_df.columns.astype(int).astype(str)
+
+    catch_df = catch_converter(X_cal_df, catch_df)
+    catch_df.year = catch_df.year.astype(int)
+    catch_df.set_index(catch_df.year, inplace=True)
+
+    X_cal_df = X_cal_df.mul(catch_df.number*-1e6, axis=0)
+
+    XX_df = X_df.pivot(index='ar',
+                       columns='lengd',
+                       values='per_length')
+
+    XX_df = pd.merge(XX_df, ysq_df, right_index=True, left_index=True)
+
+    XX_df.drop(11.9, axis=1, inplace=True)
+    XX_df.drop(12.5, axis=1, inplace=True)
+    XX_df.drop(12.6, axis=1, inplace=True)
+    XX_df.drop(13.1, axis=1, inplace=True)
+    XX_df.drop(13.4, axis=1, inplace=True)
+    XX_df.drop(13.6, axis=1, inplace=True)
+    XX_df.drop(13.7, axis=1, inplace=True)
+    XX_df.drop(13.9, axis=1, inplace=True)
+    XX_df.drop(14.4, axis=1, inplace=True)
+    XX_df.drop(14.5, axis=1, inplace=True)
+    XX_df.drop(14.7, axis=1, inplace=True)
+    XX_df.drop(14.8, axis=1, inplace=True)
+    XX_df.drop(14.9, axis=1, inplace=True)
+
+    XX_df.columns = XX_df.columns.astype(str)
+
+    YX = pd.read_csv(path_str+"RED_numbers_at_age.csv", sep=";")
+    YY = YX.iloc[15:53, 28]
+
+    XX_df = XX_df.join(X_cal_df.iloc[:, :])
+
+    XX_df.index = XX_df.index.astype(str)
+
+    s = XX_df.index[27:35]
+    s.index = XX_df[27:35]
+    s = pd.get_dummies(s)
+    s.index = XX_df.index[27:35]
+    XX_df = XX_df.join(s)
+
+    XX_df = XX_df.fillna(0)
+    heat_maps(XX_df,YY)
+    return (XX_df, YY)
+```
+
+### Conversion of kg catch to units of individuals in length groups
+
+The annual catch of the fleet is reported by weight. The statistical model is based on number of individuals at each length cm. Measurement data from IMFI surveys was employed to estmate the catch into lengths and number of individuals. 
+
+Where data did not exist polynomial regression of the second order was employed to estmiate lengths and weights.
+
+```{python}
+#| hide_input: false
+def catch_converter(X_catch_per_df, catch_df):
+    """
+    Catch information used to formulate and calculate units from kg.
+
+    Parameters
+    ----------
+    X_catch_per_df : Dataframe containing percentages of catch.
+    catch_df : Dataframe containing total cath in kg.
+
+    Returns
+    -------
+    catch_df : Dataframe containing total catch in lengths.
+    """
+    path_grs_str = 'R:/Ráðgjöf/Maris Optimum/Golden_redfish_model/'
+    path_grs_weight =\
+        'R:/Ráðgjöf/Maris Optimum/Data_from_Hafro_20220906/ssb_weights/'
+
+    red_length_weights = pd.read_csv(
+        path_grs_weight + "red_length_weights.csv")
+    red_length_weights.set_index('ar', inplace=True)
+
+    wl_df = pd.read_csv(path_grs_str+'RED_gadget_n_at_age.csv', sep=',')
+
+    Xl = wl_df[['year', 'mean_length']].copy()
+    yl = wl_df[['year', 'mean_weight']].copy()
+
+    for index, row in Xl.iterrows():
+        Xl.at[index, 'squared'] = row[1]**2
+
+    for year in range(1985, 2022):
+        average_weight = 0
+        reg_X = Xl[Xl['year'] == year]
+        reg_y = yl[yl['year'] == year]
+        reg = LinearRegression().fit(
+            reg_X[['mean_length', 'squared']], reg_y[['mean_weight']])
+        b = reg.coef_[0][0]
+        a = reg.coef_[0][1]
+        c = reg.intercept_
+        for col in range(1020, 1060):
+            if year > 1995 and \
+               pd.isna(red_length_weights.loc[year, str(col-1000)]) is False:
+                average_weight += red_length_weights.loc[year, str(col-1000)]
+            else:
+                average_weight += (X_catch_per_df.loc[year, str(col)]) * (
+                    a*(col - 1000)**2 + b*(col - 1000) + c)
+        catch_df.at[
+            year - 1985, 'number'] = catch_df.loc[
+                year - 1985, 'catch']/average_weight
+
+    df = red_length_weights
+    scaled_df = (df - df.min(axis=0))/(df.max(axis=0) - df.min(axis=0))
+    fig, ax = plt.subplots(figsize=(8,6))
+    ax = sns.heatmap(scaled_df, linewidths=.5, cmap='RdYlGn')
+    ax.set(ylabel='year')
+    plt.show()
+    return catch_df
+```
+
+The data used was received from the Icelandic Marine and Freshwater Institute spring surveys and catch reports by the Directorate of Fisheries (DF). We have modified the survey data as large individual hauls may have undue influence on the overall samples and give a biased view of the size distribution in the survey. The relatitve importance of the largest catches has been scaled down to the size of the catch sizes at the 96th fractile to reduce this bias.  See appendix 1 for more detail.
+
+The regression is set up in the normal fashion: y = f(X), where y, the independant variable is the stock index and X, the dependent variable is the set of observation and f is a function derived from the regression.
+
+X contains 108 variables. The first 51 are taken directly from every spring survey from 1985 and are the calculated percentage of individuals that appear in each  length group. The following variable is, max(cum), is the number of individials observed in the survey. 
+
+The next five variables are slack variables for years 2015 - 2019.
+
+The final 51 variables contain the number of individuals observed in each length group by the fishing fleet as collected by the DF.
+
+# Plots and Figures
+
+### Heat maps
+
+```{python}
+#| hide_input: false
+def heat_maps(X, y):
+    """
+    Plot heatmaps.
+
+    Parameters
+    ----------
+    X : Independent variables.
+    y : Dependent variables.
+
+    Returns
+    -------
+    Pictues of heat maps.
+
+    """
+    fig, ax = plt.subplots(figsize=(8,6))
+    sns.color_palette("vlag", as_cmap=True)
+    ax = sns.heatmap(X.iloc[:, :50], cmap='RdYlGn')
+    ax.set(ylabel='year')
+    
+    plt.show()
+    
+    fig, ax = plt.subplots(figsize=(8,6))
+    ax = sns.heatmap((
+        y.to_numpy() * X.iloc[:, 0:50].T).T, cmap='RdYlGn')
+    ax.set(ylabel='year')
+    plt.show()
+```
+
+### Plot over possible stock range
+
+The algorithm iterates over the range 343 to 453 million individuals in steps of one million individuals at a time. It finds the lowest mean absolute error at each step. The plot shows the mean absolute error and $r^2$.
+
+```{python}
+#| hide_input: false
+def plot_result_range(result_dict, interval_int, fractile, y_offset):
+    """
+    Plot mae and r^2 for the range of the looped regression.
+
+    Parameters
+    ----------
+    result_dict : a dictianary containing the results from different regression
+    over the interval.
+    interval_int : integer with the increments used over the interval.
+    fractile : fractile used for Winsorization.
+
+
+    Returns
+    -------
+    None.
+
+    """
+    result_dict['x'] = range(343+y_offset,
+                             453+y_offset,
+                             int(interval_int/1e6))
+    fig, ax = plt.subplots()
+    sns.set(style='whitegrid',
+            palette='pastel', )
+    sns.lineplot(x='x',
+                 y='r2',
+                 data=result_dict,
+                 color="red",
+                 ax=ax)
+    ax.set(xlabel='size of stock in millions',
+           ylabel='r2, red',
+           title='school fractile:'+fractile+'\n'
+           + '1985-2022',
+           ylim=(0, 1))
+
+    ax2 = ax.twinx()
+    sns.lineplot(x='x',
+                 y='mae',
+                 data=result_dict,
+                 color='blue',
+                 markers=True, ax=ax2)
+    ax2.set(ylabel='mean average error, blue')
+    plt.show()
+```
+
+### Shap calculations and plots
+
+Shap [values](https://github.com/slundberg/shap) are calculated for the values with the lowest mean absolute error. The twenty most influential dependent variables are displayed. As there is a strong degree of dependency between the dependant variables (see  Principal Component Analysis below) the results are more illustrative than definite (see for this [article](https://towardsdatascience.com/the-limitations-of-shap-703f34061d86#:~:text=But%20don't%20let%20the%20popularity%20persuade%20you.&text=We%20will%20discuss%203%20significant,them%20%E2%80%94%20we%20make%20up%20stories) for example).
+
+```{python}
+#| hide_input: false
+def shap_calculations_xgb(regressor, XX_df):
+    """
+    Calculate shap vales for the xgb_regressor and the dependant variables.
+
+    Parameters
+    ----------
+    regressor : TYPE
+        DESCRIPTION.
+    XX_df : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    Importance plot and waterfall plot
+
+    """
+    
+    fig = plt.figure()
+    fig.set_figheight(5)
+    explainer = shap.TreeExplainer(regressor)
+
+    shap_values = explainer.shap_values(XX_df)
+
+    shap.summary_plot(shap_values,
+                      XX_df,
+                      plot_type="violin",
+                      max_display=15,
+                     show=False)
+    
+    plt.gcf().set_size_inches(8,6)
+    plt.show()
+    
+
+    shap_values = explainer(XX_df)
+    shap.plots.waterfall(shap_values[37], 
+                         max_display=15,
+                         show=False)
+    
+    plt.gcf().set_size_inches(8,6)
+    plt.show
+```
+
+### Regression over possible ending values of stock
+
+The algorithm itearates over the range 343 to 453 million individuls in steps of one 1 million at a time. It finds parameters for the gradient boosting algorithm by using grid search where the root mean square error is as low as possible at each step. 
+It choses the number of individuals based on the lowest mean absolute error value.
+
+```{python}
+#| hide_input: false
+def regression_over_possible_values_XGB(X, y, interval_int):
+    """
+    Loop over possible stock sizes, regressing in every step.
+
+    Parameters
+    ----------
+    X : Dataframe with dependent variables.
+    y : Dataframe with independent variables.
+    interval_int : step interval.
+
+
+    Returns
+    -------
+    result_dict : json string with solutions in each interval.
+
+    """
+    parameters = {
+        'eval_metric': ["mae"],
+        'learning_rate': [.01, .05, .1, .2, .3],
+        'max_depth': [2],
+        'min_child_weight': [2],
+        'subsample': [.5],
+        'colsample_bytree': [.5],
+        'n_estimators': [120]
+    }
+    test_size = .25
+    seed = 5
+    result_dict = {'fjoldi2022': [], 'fjoldi2021': [],
+                   'fjoldi2020': [], 'mae': [], 'rmse': [], 'r2': [],
+                   'evs': []}
+
+    xgb1 = xgb.XGBRegressor(objective='reg:squarederror', seed=seed)
+
+    for add_int in range(0, 110000000, interval_int):
+        # print(add_int)
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=test_size,
+            random_state=seed)
+
+        n_iter = 200
+        n_iter = n_iter
+
+        xgb_regressor = GridSearchCV(xgb1,
+                                     parameters,
+                                     n_jobs=-1,
+                                     cv=3,
+                                     verbose=False)
+
+        eval_set = [(X_train, y_train), (X_test, y_test)]
+
+        xgb_regressor.fit(X_train,
+                          y_train,
+                          eval_set=eval_set,
+                          verbose=False)
+
+        y_pred_test = xgb_regressor.predict(X_test)
+
+        # y_pred_test = svr_regression(X_train, y_train, X_test, y_test)
+
+        result_dict['fjoldi2022'].append(y.iloc[37])
+        result_dict['fjoldi2021'].append(y.iloc[36])
+        result_dict['fjoldi2020'].append(y.iloc[35])
+
+        result_dict['mae'].append(mean_absolute_error(y_test,
+                                                      y_pred_test))
+        result_dict['rmse'].append(math.sqrt(mean_squared_error(y_test,
+                                                                y_pred_test)))
+        result_dict['r2'].append(r2_score(y_test,
+                                          y_pred_test))
+        result_dict['evs'].append(explained_variance_score(y_test,
+                                                           y_pred_test))
+        y.iat[35] += interval_int * (y.iloc[35]/y.iloc[36])
+        y.iat[36] += interval_int * (y.iloc[36]/y.iloc[37])
+        y.iat[37] += interval_int
+
+    min_value = min(result_dict['mae'])
+    min_index = result_dict['mae'].index(min_value)
+
+    y.iat[35] = result_dict['fjoldi2020'][min_index]
+    y.iat[36] = result_dict['fjoldi2021'][min_index]
+    y.iat[37] = result_dict['fjoldi2022'][min_index]
+
+    regressor = GridSearchCV(xgb1,
+                             parameters,
+                             n_jobs=-1,
+                             cv=3,
+                             verbose=0)
+
+    regressor.fit(X, y)
+    params = regressor.best_params_
+    regressor = xgb.XGBRegressor(**params)
+    regressor.fit(X, y)
+    shap_calculations_xgb(regressor, X)
+
+    return result_dict
+```
+
+### Free regression (with slack variables for the period 2014 to 2019)
+
+```{python}
+#| hide_input: false
+def free_regression_XGB(X, y):
+    """
+    Regression where part of y values are free.
+
+    Parameters
+    ----------
+    X : Dataframe with dependent variables.
+    y : Dataframe with independent variables.
+
+    Returns
+    -------
+    returns array with predection for y based intiial values of X and
+    the regression.
+
+    """
+    parameters = {
+        'eval_metric': ["mae"],
+        'learning_rate': [0.01, 0.1],
+        'max_depth': [2],
+        'min_child_weight': [2],
+        'subsample': [.5],
+        'colsample_bytree': [.5],
+        'n_estimators': [120]
+    }
+
+    seed = 5
+
+    xgb1 = xgb.XGBRegressor(objective='reg:squarederror', seed=seed)
+
+    year = 29
+
+    X_train = pd.concat([X.iloc[:year, :], X.iloc[34:, :]])
+    y_train = pd.concat([y.iloc[:year], y.iloc[34:]])
+    # print(y_train)
+    X_test = X.iloc[year:34, :]
+    y_test = y.iloc[year:34]
+
+    n_iter = 200
+    n_iter = n_iter
+
+    eval_set = [(X_train, y_train), (X_test, y_test)]
+
+    regressor = GridSearchCV(xgb1,
+                             parameters,
+                             n_jobs=-1,
+                             cv=3,
+                             verbose=0)
+
+    regressor.fit(X_train,
+                  y_train,
+                  eval_set=eval_set,
+                  verbose=False)
+
+    # params = regressor.best_params_
+    # regressor = xgb.XGBRegressor(**params)
+    # regressor.fit(X_train, y_train)
+
+    return regressor.predict(X)
+```
+
+### Running code and results, using random training and testing data - instance 1.
+
+
+  1. Heatmap showing the relationship between length and weight through the years
+  2. Adjust data (cf. appendix 1) 
+  2. Fetch adjusted data 
+  3. Show heat maps
+  4. Regress in a loop over possible values 
+  5. Shap analysis
+  
+
+The optimal solutions (the solutions that best balances the mean average error ("mae")  and explainability ($r^2$) ) is that there are currently 385, 395 or 412 m individuals. At this point mae $ \approx $ 52m individuals and $r^2$ $ \approx $ 0.55. This is a good estimation although we would have hoped for a lower mae.
+  
+The shap analysis shows that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The amount caught (the code starting with "10") is also very important.
+
+The Max(cum) variable is of major importance as is to be expecteded - it contains the CPU of the respective survey (i.e. number of individuals caught).
+  
+
+```{python}
+#| hide_input: true
+fractile = '096'
+interval_int = 1000000
+
+(X, y) = get_new_data(fractile)
+result_dict_gb = regression_over_possible_values_XGB(X, y, interval_int)
+plot_result_range(result_dict_gb, interval_int, fractile, 0)
+```
+
+### Running code and results, using fixed testing data and slack variables - instance 2.
+
+
+  1. Adjust and fetch data(cf appendix 1)
+  2. Show the heat maps
+  3. Run "free" gradient boosting
+  4. Regress in a loop over possible values 
+  5. Shap analysis
+    
+As we were dissatisfied with the high mean average error in our initial approach we wanted conducted more analysis. Given the rapid decline in stocks in the past few years we were keen to test if the estimates of the past 10 years may have been excessive. By introducing slack variables for the years 2012 - 2019 and fixing the test on the same period as well as fixing the result of the current 2 years we got a much better result. In this case the current stock size was estimated at 380 m individuals. At this point mae $ \approx $ 40m individuals and $r^2$ $ \approx $ 0.8.
+
+This result is much better than the previous instance. The result of Imfi of 343 m individuals falls within the confidence interval so the results are essentially the same.
+
+The shap analysis shows that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The amount caught by the fleet in the same length groups is also very important in this running instance.
+
+ 
+The Max(cum) variable is even more important in this instance. This is to be expected as this run is more precise and therefore more sensitive than the previous instance.
+
+```{python}
+#| hide_input: false
+(X, y) = get_new_data(fractile)
+y_2022 = y.iloc[37]
+y = pd.Series(free_regression_XGB(X, y))
+y_offset = int((y.iloc[37]-y_2022)/1e6)
+
+result_dict_gb = regression_over_possible_values_XGB(X,
+                                                     y,
+                                                     interval_int)
+plot_result_range(result_dict_gb, interval_int, fractile, y_offset)
+```
+
+### Appendix 1: Adjusting for large schools
+
+![The figure shows the age distribution without correcting for large schools](attachment:62f0ee65-fce7-4070-93b2-fd5e81750c33.png){width=80%}
+
+
+
+![The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,](attachment:05a16beb-152d-40a0-befe-a74ca37ae1d5.png){width=80%}
+
+### Appendix 2 PCA analysis and depenency (linear or non-linear)
+
+```{python}
+#| hide_input: true
+scaler = StandardScaler()
+X_sca = scaler.fit_transform(X)
+pca = PCA(n_components=18)
+pca.fit(X_sca)
+print((pca.explained_variance_ratio_))
+print(pca.singular_values_)
+```
+
+The above tables illustrate that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 103 it is clear that there is a high degree of dependency between the dependant variables and that the SHAP analysis should be taken with a spoon of salt :) The next steps in the development is to try and reduce the number of variables.
+
