@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>golden_redfish_article</title>
+<title>Golden Redfish in Icelandic waters: a statistical approach</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -107,7 +107,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Golden Redfish in Icelandic waters: a statistical approach</h1>
+</div>
 
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
 
 <section id="golden-redfish-in-icelandic-waters-a-statistical-approach" class="level1">
 <h1>Golden redfish in Icelandic waters: a statistical approach</h1>
@@ -675,15 +690,12 @@ Python 3.11 programming language
 </div>
 <p>Above there are three heatmaps. in the first heat map we show the relative weight of individuals of certain length over the years. We compared the mean weight for individuals of lengths from 30-50cm for the years in this decade to the mean of the average weights of the whole population sample. Interestingly they differ significantly at the α=.01 level.</p>
 <p>The other two heat maps show the distribution of the length classes in percentages and millions. They show really well the precarious position of the golden redfish stock.</p>
-<div class="cell" data-execution_count="10">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>result_dict_gb, regressor <span class="op">=</span> regression_over_possible_values_XGB(X, y, interval_int)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plot_result_range(result_dict_gb, interval_int, fractile, <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
-<p><img src="golden_redfish_article_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
-</div>
 </div>
 <p>The optimal solutions (the solutions that best balance the mean bsolute error (“mae”) and the explainability (<span class="math inline">\(r^2\)</span>) ) is that there are currently 385, 395 or 412 m individuals in the stock. At this point mae <span class="math inline">\(\approx\)</span> 52m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.55. While this is a solid estimate we are looking for a better result in terms of r2 og mae.</p>
 </section>
@@ -751,13 +763,13 @@ Python 3.11 programming language
 <p>Golden redfish lives in large schools.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="golden_redfish_article_files/figure-html/685570a5-2-c774499a-8e3a-4116-b887-3530b8b164d7.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/8bde6fed-2-c774499a-8e3a-4116-b887-3530b8b164d7.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution without correcting for large catches</figcaption><p></p>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="golden_redfish_article_files/figure-html/685570a5-1-7e193076-093c-4808-b7bc-c9bec2a5c86a.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<p><img src="golden_redfish_article_files/figure-html/8bde6fed-1-7e193076-093c-4808-b7bc-c9bec2a5c86a.png" class="img-fluid figure-img" style="width:80.0%"></p>
 <p></p><figcaption class="figure-caption">The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,</figcaption><p></p>
 </figure>
 </div>

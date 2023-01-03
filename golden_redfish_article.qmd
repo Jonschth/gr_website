@@ -5,7 +5,8 @@ jupyter: python3
 # Golden redfish in Icelandic waters: a statistical approach
 
 ---
-tile: 'Golden Redfish in Icelandic waters: a statistical approach'
+title: 'Golden Redfish in Icelandic waters: a statistical approach'
+        
 format: 
     html:
         code-fold: true
@@ -16,7 +17,7 @@ jupyter: python3
 
 ## Packages imported
 
-This Jupyter notebook contains the python code for the Golden redfish model that Maris Optimum has developed.
+This file contains the python code and description of the Golden redfish statistical model that Maris Optimum has developed.
 
 Sources:
 <ol>
@@ -32,8 +33,7 @@ The main packages used are:
     [the scikit-learn suite ](https://scikit-learn.org/stable/user_guide.html),
     [the shap suite](https://shap.readthedocs.io/en/latest/index.html).
     
-    
-
+We start by describing the data gathering and the functions of the model.
 
 ```{python}
 #| hide_input: false
@@ -68,11 +68,13 @@ red_length_weights = pd.read_csv(
 red_length_weights.set_index('ar', inplace=True)
 ```
 
-### Data fetched and heat maps generated
+## Data Fetched and adjusted
+
+### Data
 
 ```{python}
 #| hide_input: false
-def get_new_data(fractile):
+def get_new_data(fractile, show_heatmaps):
     """
     Fetch all data for the regression.
 
@@ -113,7 +115,7 @@ def get_new_data(fractile):
     X_cal_df.columns = 1000 + X_cal_df.columns
     X_cal_df.columns = X_cal_df.columns.astype(int).astype(str)
 
-    catch_df = catch_converter(X_cal_df, catch_df)
+    catch_df = catch_converter(X_cal_df, catch_df, show_heatmaps)
     catch_df.year = catch_df.year.astype(int)
     catch_df.set_index(catch_df.year, inplace=True)
 
@@ -155,7 +157,8 @@ def get_new_data(fractile):
     XX_df = XX_df.join(s)
 
     XX_df = XX_df.fillna(0)
-    heat_maps(XX_df,YY)
+    if show_heatmaps:
+        heat_maps(XX_df,YY)
     return (XX_df, YY)
 ```
 
@@ -167,7 +170,7 @@ Where data did not exist polynomial regression of the second order was employed 
 
 ```{python}
 #| hide_input: false
-def catch_converter(X_catch_per_df, catch_df):
+def catch_converter(X_catch_per_df, catch_df, show_heatmaps):
     """
     Catch information used to formulate and calculate units from kg.
 
@@ -216,18 +219,19 @@ def catch_converter(X_catch_per_df, catch_df):
             year - 1985, 'number'] = catch_df.loc[
                 year - 1985, 'catch']/average_weight
 
-    df = red_length_weights
-    scaled_df = (df - df.min(axis=0))/(df.max(axis=0) - df.min(axis=0))
-    fig, ax = plt.subplots(figsize=(8,6))
-    ax = sns.heatmap(scaled_df, linewidths=.5, cmap='RdYlGn')
-    ax.set(ylabel='year')
-    plt.show()
+    if show_heatmaps:
+        df = red_length_weights
+        scaled_df = (df - df.min(axis=0))/(df.max(axis=0) - df.min(axis=0))
+        fig, ax = plt.subplots(figsize=(8,6))
+        ax = sns.heatmap(scaled_df, linewidths=.5, cmap='RdYlGn')
+        ax.set(ylabel='year')
+        plt.show()
     return catch_df
 ```
 
 The data used was received from the Icelandic Marine and Freshwater Institute spring surveys and catch reports by the Directorate of Fisheries (DF). We have modified the survey data as large individual hauls may have undue influence on the overall samples and give a biased view of the size distribution in the survey. The relatitve importance of the largest catches has been scaled down to the size of the catch sizes at the 96th fractile to reduce this bias.  See appendix 1 for more detail.
 
-The regression is set up in the normal fashion: y = f(X), where y, the independant variable is the stock index and X, the dependent variable is the set of observation and f is a function derived from the regression.
+The regression is set up in the normal fashion: y = f(X), where y, the independant variable is the stock index and X, the dependent variable ("features") is the set of observation and f is a function derived from the regression.
 
 X contains 108 variables. The first 51 are taken directly from every spring survey from 1985 and are the calculated percentage of individuals that appear in each  length group. The following variable is, max(cum), is the number of individials observed in the survey. 
 
@@ -292,9 +296,9 @@ def plot_result_range(result_dict, interval_int, fractile, y_offset):
     None.
 
     """
-    result_dict['x'] = range(343+y_offset,
+    result_dict['x'] = list(range(343+y_offset,
                              453+y_offset,
-                             int(interval_int/1e6))
+                             int(interval_int/1e6)))
     fig, ax = plt.subplots()
     sns.set(style='whitegrid',
             palette='pastel', )
@@ -321,7 +325,7 @@ def plot_result_range(result_dict, interval_int, fractile, y_offset):
 
 ### Shap calculations and plots
 
-Shap [values](https://github.com/slundberg/shap) are calculated for the values with the lowest mean absolute error. The twenty most influential dependent variables are displayed. As there is a strong degree of dependency between the dependant variables (see  Principal Component Analysis below) the results are more illustrative than definite (see for this [article](https://towardsdatascience.com/the-limitations-of-shap-703f34061d86#:~:text=But%20don't%20let%20the%20popularity%20persuade%20you.&text=We%20will%20discuss%203%20significant,them%20%E2%80%94%20we%20make%20up%20stories) for example).
+Shap [values](https://github.com/slundberg/shap) are calculated for the values with the lowest mean absolute error. The twenty most influential feaures are displayed. As there is a strong degree of dependency between the features (see Appendix 2 below) care must be applied to the analysis (see for example this article: [The limitations of shap](https://towardsdatascience.com/the-limitations-of-shap-703f34061d86#:~:text=But%20don't%20let%20the%20popularity%20persuade%20you.&text=We%20will%20discuss%203%20significant,them%20%E2%80%94%20we%20make%20up%20stories)).
 
 ```{python}
 #| hide_input: false
@@ -364,7 +368,7 @@ def shap_calculations_xgb(regressor, XX_df):
                          show=False)
     
     plt.gcf().set_size_inches(8,6)
-    plt.show
+    plt.show()
 ```
 
 ### Regression over possible ending values of stock
@@ -469,12 +473,12 @@ def regression_over_possible_values_XGB(X, y, interval_int):
     params = regressor.best_params_
     regressor = xgb.XGBRegressor(**params)
     regressor.fit(X, y)
-    shap_calculations_xgb(regressor, X)
 
-    return result_dict
+
+    return result_dict, regressor
 ```
 
-### Free regression (with slack variables for the period 2014 to 2019)
+### Free regression (with slack variables for the period 2015 to 2019)
 
 ```{python}
 #| hide_input: false
@@ -529,7 +533,7 @@ def free_regression_XGB(X, y):
     regressor.fit(X_train,
                   y_train,
                   eval_set=eval_set,
-                  verbose=False)
+                  verbose=0)
 
     # params = regressor.best_params_
     # regressor = xgb.XGBRegressor(**params)
@@ -538,78 +542,113 @@ def free_regression_XGB(X, y):
     return regressor.predict(X)
 ```
 
-### Running code and results, using random training and testing data - instance 1.
+## Model run (#1)
 
 
-  1. Heatmap showing the relationship between length and weight through the years
-  2. Adjust data (cf. appendix 1) 
-  2. Fetch adjusted data 
-  3. Show heat maps
-  4. Regress in a loop over possible values 
-  5. Shap analysis
+  1. Adjusted data fetched
+  2. Heat maps generated
+  3. Regression in a loop over possible values 
+
   
 
-The optimal solutions (the solutions that best balances the mean average error ("mae") and explainability ($r^2$) ) is that there are currently 385, 395 or 412 m individuals. At this point mae $ \approx $ 52m individuals and $r^2$ $ \approx $ 0.55. This is a good estimation although we would have hoped for a lower mae.
-  
-We do two kind of shap analysis. The first figures shows the 
-
-
-
-that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The number of individuals that have been caught by the fleet (the code starting with "10") is also very important.
-
-The Max(cum) variable is of major importance as it contains the CPU of the respective survey (i.e. number of individuals caught).
-  
 
 ```{python}
 #| hide_input: true
 fractile = '096'
 interval_int = 1000000
 
-(X, y) = get_new_data(fractile)
-result_dict_gb = regression_over_possible_values_XGB(X, y, interval_int)
+(X, y) = get_new_data(fractile, show_heatmaps=True)
+```
+
+Above there are three heatmaps.
+in the first heat map we show the relative weight of individuals of certain length over the years. We compared the mean weight for individuals of lengths from 30-50cm for the years in this decade to the mean of the average weights of the whole population sample. Interestingly they differ significantly at the α=.01 level. 
+
+The other two heat maps show the distribution of the length classes in percentages and millions. They show really well the precarious position of the golden redfish stock.
+
+```{python}
+result_dict_gb, regressor = regression_over_possible_values_XGB(X, y, interval_int)
 plot_result_range(result_dict_gb, interval_int, fractile, 0)
 ```
 
-### Running code and results, using fixed testing data and slack variables - instance 2.
+The optimal solutions (the solutions that best balance the mean bsolute error ("mae") and the explainability ($r^2$) ) is that there are currently 385, 395 or 412 m individuals in the stock. At this point mae $\approx$ 52m individuals and $r^2$ $\approx$ 0.55. While this is a solid estimate we are looking for a better result in terms of r2 og mae. 
 
 
-  1. Adjust and fetch data(cf appendix 1)
-  2. Show the heat maps
-  3. Run "free" gradient boosting
-  4. Regress in a loop over possible values 
+## Model run (#2)
+
+
+  1. Adjusted data fetched
+  3. "Free" gradient boosting used to estimate actual stock sizes for 2015-2019
+  4. Regression in a loop over possible values 
   5. Shap analysis
     
-As we were dissatisfied with the high mean average error in our initial approach we wanted conducted more analysis. Given the rapid decline in stocks in the past few years we were keen to test if the estimates of the past 10 years may have been excessive. By introducing slack variables for the years 2012 - 2019 and fixing the test on the same period as well as fixing the result of the current 2 years we got a much better result. In this case the current stock size was estimated at 380 m individuals. At this point mae $ \approx $ 40m individuals and $r^2$ $ \approx $ 0.8.
-
-This result is much better than the previous instance. The result of Imfi of 343 m individuals falls within the confidence interval so the results are essentially the same.
-
-The shap analysis shows that the length classes that are most important in reducing the size of the stock are the classes between 29-36 cm as we would expect. The amount caught by the fleet in the same length groups is also very important in this running instance.
-
- 
-The Max(cum) variable is even more important in this instance. This is to be expected as this run is more precise and therefore more sensitive than the previous instance.
 
 ```{python}
 #| hide_input: false
-(X, y) = get_new_data(fractile)
-y_2022 = y.iloc[37]
-y = pd.Series(free_regression_XGB(X, y))
-y_offset = int((y.iloc[37]-y_2022)/1e6)
+(X_observed, y_observed) = get_new_data(fractile, False)
+y_2022 = y_observed.iloc[37]
 
-result_dict_gb = regression_over_possible_values_XGB(X,
-                                                     y,
+y_calculated = pd.Series(free_regression_XGB(X_observed, y_observed))
+y_offset = int((y_calculated.iloc[37]-y_2022)/1e6)
+result_dict_gb, regressor = regression_over_possible_values_XGB(X_observed,
+                                                     y_calculated,
                                                      interval_int)
-plot_result_range(result_dict_gb, interval_int, fractile, y_offset)
 ```
+
+```{python}
+plot_result_range(result_dict_gb,
+                  interval_int,
+                  fractile,
+                  y_offset)
+                            
+```
+
+Given the rapid decline in stocks in the past few years we were keen to test if the estimates of stock sizes in the past decade may have been excessive. By introducing slack variables for the years 2015 - 2019 and fixing the test on the same period as well as fixing the result of the last 3years we got a much better result. In this case the current stock size was estimated at 378 m individuals. At this point mae $\approx$ 47m individuals and $r^2$ $\approx$ 0.8.
+
+This result is much better than the previous instance. The result of IMFI of 343 m individuals falls within the confidence interval so the results are essentially the same.
+
+In the table below we show the difference between the observed stock size and the size as calculated by the model: 
+
+```{python}
+y_observed.index=range(0,38)
+y_df = pd.concat([y_observed, y_calculated], axis=1, join='inner')
+y_df.columns = ['observed', 'calculated']
+y_df['difference'] = y_df['observed'] - y_df['calculated']
+y_df = y_df.rename(index = lambda x: x + 1985)
+pd.options.display.float_format = '{:,.0f}'.format
+
+print(y_df.iloc[30:38, :])
+```
+
+```{python}
+shap_calculations_xgb(regressor, X)
+```
+
+We performed two types of shap analysis an dthey are shown on the figures above (summary plot and waterfall plot)
+
+The result of the first is shown on the summary plot (the first figure) where the dependent variables are ranked in order of importance over the whole period (1985 - 2022). The first figure shows the impact of each feature in millions of individuals. If the red colour is on the positive x-axis it indicates that more individuals of this length mean more overall individuals and vice versa. Of note is that in feature from the survey e.g. 56 blue is on the negative x axis and red on the positive side. Conversely most of the fleet catch features, 10XX show the opposite impact as expected.
+
+The most important feature is the 19 cm feature from the surveys. This feature has always been of key importance even when our models did not manage to explain variance (<<.5) and there were higher rmse and mae errors (>100.000.000). Statistically it is easy to explain this: good recruitment means that there are a lot of individuals in the total stock (in addition to the 19cm variety). Of note is that is that 1019 has red on both sides of the of the x-axis which underlines the need to protect recruits. It is also negatively skewed.
+
+The third feature, max(cum), is interesting in that it shows that the number of individuals caught in a survey is a very good indicator of stock size.
+
+
+The rest of the important features fall into two categories: 
+1)	Sizes 29-40 in caught the survey. 
+2)	Sizes 35 + in caught by the fleet. 
+The states the obvious: As stock is depleted the individuals caught in surveys and by the fleet are longer.
+
+
+The waterfall plot n the second figure displays how the 2022 value estimation is arrived at by the regression model. the model starts at the average number of 786 m individuals (the average of stock suveys for the years 1985 - 2022) which is shown at the bottom of the figure. It then calculates the impact of the observed number of individuals in the spring survey in 2022 as well as the estimated fleet catches. The final result, 378 m,  is shown at the top of the figure and how the model got there.
 
 ### Appendix 1: Adjusting for large catches in surveys
 
 Golden redfish lives in large schools. 
 
-![The figure shows the age distribution without correcting for large catches](attachment:62f0ee65-fce7-4070-93b2-fd5e81750c33.png){width=80%}
+![The figure shows the age distribution without correcting for large catches](attachment:c774499a-8e3a-4116-b887-3530b8b164d7.png){width=80%}
 
 
 
-![The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,](attachment:05a16beb-152d-40a0-befe-a74ca37ae1d5.png){width=80%}
+![The figure shows the age distribution where 96% fractile correction has been employed. Fractile levels were calibrated by examining different fractile levels between 90 and 100%,](attachment:7e193076-093c-4808-b7bc-c9bec2a5c86a.png){width=80%}
 
 ### Appendix 2 PCA analysis and depenency (linear or non-linear)
 
@@ -619,9 +658,11 @@ scaler = StandardScaler()
 X_sca = scaler.fit_transform(X)
 pca = PCA(n_components=18)
 pca.fit(X_sca)
-print((pca.explained_variance_ratio_))
-print(pca.singular_values_)
+
+pd.options.display.float_format = '{:,.2f}'.format
+evr = pd.DataFrame(pca.explained_variance_ratio_, columns=['variability'])
+print(evr.iloc[0:5, 0:1])
 ```
 
-The above tables illustrate that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 103 it is clear that there is a high degree of dependency between the dependant variables and that the SHAP analysis should be taken with a spoon of salt :) The next steps in the development is to try and reduce the number of variables.
+The above tables illustrates that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 108 it is clear that there is a high degree of dependency between the dependant variables. Gradient boosting strength is that it discards features with the same information in already chosen features. The shap analysis above shows that the 10-15 most important features provide enough information for the model to function. 
 
