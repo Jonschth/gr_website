@@ -2609,16 +2609,47 @@ vertical-align: -.125em;
 
 </head>
 
-<body class="fullcontent">
+<body>
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#golden-redfish-in-icelandic-waters-a-statistical-approach" id="toc-golden-redfish-in-icelandic-waters-a-statistical-approach" class="nav-link active" data-scroll-target="#golden-redfish-in-icelandic-waters-a-statistical-approach"><strong>Golden redfish in Icelandic waters: a statistical approach</strong></a></li>
+  <li><a href="#software-and-data" id="toc-software-and-data" class="nav-link" data-scroll-target="#software-and-data">Software and data</a>
+  <ul class="collapse">
+  <li><a href="#packages-imported" id="toc-packages-imported" class="nav-link" data-scroll-target="#packages-imported">Packages imported</a></li>
+  <li><a href="#data-fetched-and-adjusted" id="toc-data-fetched-and-adjusted" class="nav-link" data-scroll-target="#data-fetched-and-adjusted">Data Fetched and adjusted</a>
+  <ul class="collapse">
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#conversion-of-kg-catch-to-units-of-individuals-in-length-groups" id="toc-conversion-of-kg-catch-to-units-of-individuals-in-length-groups" class="nav-link" data-scroll-target="#conversion-of-kg-catch-to-units-of-individuals-in-length-groups">Conversion of kg catch to units of individuals in length groups</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#plots-and-figures" id="toc-plots-and-figures" class="nav-link" data-scroll-target="#plots-and-figures">Plots and Figures</a>
+  <ul class="collapse">
+  <li><a href="#heat-maps" id="toc-heat-maps" class="nav-link" data-scroll-target="#heat-maps">Heat maps</a></li>
+  <li><a href="#plot-over-possible-stock-range" id="toc-plot-over-possible-stock-range" class="nav-link" data-scroll-target="#plot-over-possible-stock-range">Plot over possible stock range</a></li>
+  <li><a href="#shap-calculations-and-plots" id="toc-shap-calculations-and-plots" class="nav-link" data-scroll-target="#shap-calculations-and-plots">Shap calculations and plots</a></li>
+  <li><a href="#regression-over-possible-ending-values-of-stock" id="toc-regression-over-possible-ending-values-of-stock" class="nav-link" data-scroll-target="#regression-over-possible-ending-values-of-stock">Regression over possible ending values of stock</a></li>
+  <li><a href="#free-regression-with-slack-variables-for-the-period-2015-to-2019" id="toc-free-regression-with-slack-variables-for-the-period-2015-to-2019" class="nav-link" data-scroll-target="#free-regression-with-slack-variables-for-the-period-2015-to-2019">Free regression (with slack variables for the period 2015 to 2019)</a></li>
+  </ul></li>
+  <li><a href="#running-model-before-adjusting-for-large-catches-in-surveys" id="toc-running-model-before-adjusting-for-large-catches-in-surveys" class="nav-link" data-scroll-target="#running-model-before-adjusting-for-large-catches-in-surveys">Running model before adjusting for large catches in surveys</a></li>
+  <li><a href="#running-model-after-adjusting-for-large-catches-in-surveys" id="toc-running-model-after-adjusting-for-large-catches-in-surveys" class="nav-link" data-scroll-target="#running-model-after-adjusting-for-large-catches-in-surveys">Running model after adjusting for large catches in surveys</a>
+  <ul class="collapse">
+  <li><a href="#appendix-1-adjusting-for-large-catches-in-surveys" id="toc-appendix-1-adjusting-for-large-catches-in-surveys" class="nav-link" data-scroll-target="#appendix-1-adjusting-for-large-catches-in-surveys">Appendix 1: Adjusting for large catches in surveys</a></li>
+  <li><a href="#appendix-2-pca-analysis-and-dependency-linear-or-non-linear" id="toc-appendix-2-pca-analysis-and-dependency-linear-or-non-linear" class="nav-link" data-scroll-target="#appendix-2-pca-analysis-and-dependency-linear-or-non-linear">Appendix 2 PCA analysis and dependency (linear or non-linear)</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 
 
 <section id="golden-redfish-in-icelandic-waters-a-statistical-approach" class="level1">
-<h1>Golden redfish in Icelandic waters: a statistical approach</h1>
+<h1><strong>Golden redfish in Icelandic waters: a statistical approach</strong></h1>
 </section>
 <section id="software-and-data" class="level1">
 <h1>Software and data</h1>
@@ -3156,8 +3187,9 @@ Python 3.11 programming language
 </details>
 </div>
 </section>
-<section id="model-run-1" class="level2">
-<h2 class="anchored" data-anchor-id="model-run-1">Model run (#1)</h2>
+</section>
+<section id="running-model-before-adjusting-for-large-catches-in-surveys" class="level1">
+<h1>Running model before adjusting for large catches in surveys</h1>
 <ol type="1">
 <li>Adjusted data fetched</li>
 <li>Heat maps generated</li>
@@ -3195,8 +3227,8 @@ Python 3.11 programming language
 </div>
 <p>The optimal solutions (the solutions that best balance the mean bsolute error (“mae”) and the explainability (<span class="math inline">\(r^2\)</span>) ) is that there are currently 385, 395 or 412 m individuals in the stock. At this point mae <span class="math inline">\(\approx\)</span> 52m individuals and <span class="math inline">\(r^2\)</span> <span class="math inline">\(\approx\)</span> 0.55. While this is a solid estimate we are looking for a better result in terms of <span class="math inline">\(r^2\)</span> og mae.</p>
 </section>
-<section id="model-run-2" class="level2">
-<h2 class="anchored" data-anchor-id="model-run-2">Model run (#2)</h2>
+<section id="running-model-after-adjusting-for-large-catches-in-surveys" class="level1">
+<h1>Running model after adjusting for large catches in surveys</h1>
 <ol type="1">
 <li>Adjusted data fetched</li>
 <li>“Free” gradient boosting used to estimate actual stock sizes for 2015-2019</li>
@@ -3242,11 +3274,10 @@ Python 3.11 programming language
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>y_df <span class="op">=</span> y_df.rename(index <span class="op">=</span> <span class="kw">lambda</span> x: x <span class="op">+</span> <span class="dv">1985</span>)</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>pd.options.display.float_format <span class="op">=</span> <span class="st">&#39;{:,.0f}&#39;</span>.<span class="bu">format</span></span>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(y_df.iloc[<span class="dv">28</span>:<span class="dv">38</span>, :])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(y_df.iloc[<span class="dv">29</span>:<span class="dv">38</span>, :])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>       observed  calculated  difference
-2013  993934013 986,772,480   7,161,533
 2014  945726591 723,613,056 222,113,535
 2015  866119334 674,617,728 191,501,606
 2016  766110690 679,365,504  86,745,186
@@ -3326,7 +3357,6 @@ Sizes 35+ caught by the fleet. &lt;/&gt; This states the obvious: As stock is de
 </div>
 </div>
 <p>The above tables illustrates that by decomposing the dependence matrix and ordering the eigenvectors by eigenvalues that almost 40% of the variability is connected to one eigenvector and that 70% of the variability can be reduced to three eigenvectors. Given that the number of dependant variables is 108 it is clear that there is a high degree of dependency between the dependant variables. Gradient boosting strength is that it discards features with the same information in already chosen features. The shap analysis above shows that the 10-15 most important features provide enough information for the model to function.</p>
-</section>
 </section>
 </section>
 
